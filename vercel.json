@@ -1,0 +1,3 @@
+{
+  "rewrites": [{ "source": "/", "destination": "/lifequest_rpg_dashboard.html" }]
+}
