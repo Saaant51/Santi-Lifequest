@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeQuest RPG - Cyberpunk Operative Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            black: '#070913',
+                            card: 'rgba(15, 23, 42, 0.75)',
+                            cyan: '#00f3ff',
+                            magenta: '#ff0055',
+                            gold: '#ffb700',
+                            emerald: '#00ff9d',
+                            purple: '#ab00ff',
+                            darkBorder: '#1e293b'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 15px rgba(0, 243, 255, 0.4), inset 0 0 15px rgba(0, 243, 255, 0.15)',
+                        'neon-magenta': '0 0 15px rgba(255, 0, 85, 0.4), inset 0 0 15px rgba(255, 0, 85, 0.15)',
+                        'neon-gold': '0 0 15px rgba(255, 183, 0, 0.4), inset 0 0 15px rgba(255, 183, 0, 0.15)',
+                        'neon-emerald': '0 0 15px rgba(0, 255, 157, 0.4), inset 0 0 15px rgba(0, 255, 157, 0.15)'
+                    },
+                    fontFamily: {
+                        mono: ['Courier New', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #05070e;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 85% 70%, rgba(255, 0, 85, 0.05) 0%, transparent 50%),
+                linear-gradient(to bottom, rgba(7, 9, 19, 0.95), rgba(5, 7, 14, 0.98));
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Scanline FX */
+        .scanline-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 99;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* Cyberpunk Glitch Text Animation */
+        .glitch-text {
+            text-shadow: 2px 0 #ff0055, -2px 0 #00f3ff;
+        }
+
+        /* Clip path angular button corners */
+        .cyber-clip {
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+        }
+
+        .cyber-card {
+            background: rgba(13, 18, 33, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .cyber-card:hover {
+            border-color: rgba(0, 243, 255, 0.5);
+        }
+
+        /* Custom Scrollbar for Terminal */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(7, 9, 19, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00f3ff;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff0055;
+        }
+    </style>
+</head>
+<body class="p-3 md:p-6 text-slate-100 overflow-x-hidden relative">
+
+    <!-- Scanline effect visual overlay -->
+    <div class="scanline-overlay"></div>
+
+    <div class="max-w-7xl mx-auto space-y-6 relative z-10">
+
+        <!-- HEADER & HUD BAR -->
+        <header class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-cyber-cyan/30 pb-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded bg-cyber-cyan/10 border border-cyber-cyan flex items-center justify-center text-cyber-cyan shadow-neon-cyan animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-orbitron text-2xl md:text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-white to-cyber-magenta glitch-text">
+                        LIFEQUEST RPG
+                    </h1>
+                    <p class="text-xs text-cyber-cyan/70 tracking-widest font-mono">SYSTEM v4.02 // NEURAL LINK ACTIVE</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Audio toggle -->
+                <button id="btn-audio" onclick="toggleAudio()" class="cyber-clip px-3 py-1.5 bg-cyber-darkBorder border border-cyber-cyan/40 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/20 transition flex items-center gap-2">
+                    <span id="audio-icon">🔊</span> <span id="audio-status">AUDIO ON</span>
+                </button>
+                <div class="px-4 py-1.5 bg-slate-900/80 border border-cyber-gold/40 rounded text-cyber-gold font-mono text-sm flex items-center space-x-2 shadow-neon-gold">
+                    <span>🔥 STREAK:</span>
+                    <span id="stat-streak" class="font-bold text-lg text-white">0</span>
+                    <span class="text-xs">DAYS</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- OPERATIVE PROFILE & LEVEL STATS -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- OPERATIVE PROFILE CARD -->
+            <div class="cyber-card rounded-lg p-5 border-l-4 border-l-cyber-cyan relative overflow-hidden">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-cyber-cyan/5 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="text-xs font-mono text-cyber-cyan uppercase tracking-widest">[ OPERATIVE IDENTITY ]</span>
+                        <h2 class="text-xl font-orbitron font-bold text-white flex items-center gap-2">
+                            AGENT_ZERO
+                            <span class="text-xs px-2 py-0.5 bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-mono rounded">RANK I</span>
+                        </h2>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-mono text-slate-400 block">CURRENT LEVEL</span>
+                        <span id="player-level" class="text-3xl font-orbitron font-black text-cyber-cyan drop-shadow-[0_0_8px_rgba(0,243,255,0.8)]">1</span>
+                    </div>
+                </div>
+
+                <!-- XP Progress Bar -->
+                <div class="space-y-1.5 mb-5">
+                    <div class="flex justify-between text-xs font-mono">
+                        <span class="text-slate-300">XP PROGRESS</span>
+                        <span class="text-cyber-cyan"><span id="player-xp">0</span> / <span id="player-next-xp">500</span> XP</span>
+                    </div>
+                    <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                        <div id="xp-bar" class="h-full bg-gradient-to-r from-cyber-cyan to-cyber-emerald rounded-full transition-all duration-500 w-0 shadow-neon-cyan"></div>
+                    </div>
+                </div>
+
+                <!-- Controls & Perfect Day Status -->
+                <div class="pt-3 border-t border-slate-800 flex flex-col gap-2">
+                    <div class="flex justify-between items-center text-xs font-mono bg-slate-900/60 p-2 rounded border border-slate-800">
+                        <span class="text-slate-400">PERFECT DAY BONUS:</span>
+                        <span id="perfect-day-status" class="text-cyber-gold font-bold">+250 XP READY</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ATTRIBUTES MATRIX (STATS) -->
+            <div class="lg:col-span-2 cyber-card rounded-lg p-5 border-l-4 border-l-cyber-magenta">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-orbitron font-bold text-white flex items-center gap-2">
+                        <span class="text-cyber-magenta">📊</span> NEURAL ATTRIBUTE MATRIX
+                    </h2>
+                    <span class="text-xs font-mono text-slate-400">TOTAL STAT POINTS: <span id="total-stat-points" class="text-cyber-magenta font-bold">0</span></span>
+                </div>
+
+                <!-- 7 Attributes Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" id="stats-container">
+                    <!-- Dynamic rendering via JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA: QUEST BOARD & ACHIEVEMENTS PANEL -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- QUEST BOARD (2 COLS) -->
+            <div class="lg:col-span-2 space-y-4">
+                <div class="cyber-card rounded-lg p-5 border-t-2 border-t-cyber-cyan">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
+                        <div>
+                            <h2 class="text-xl font-orbitron font-bold text-white flex items-center gap-2">
+                                🎯 ACTIVE DAILY DIRECTIVES
+                            </h2>
+                            <p class="text-xs text-slate-400 font-mono">Complete directives to earn XP & upgrade neural stats.</p>
+                        </div>
+
+                        <!-- Reroll Button & Counter -->
+                        <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                            <span class="text-xs font-mono text-slate-400">
+                                REROLLS: <span id="rerolls-left" class="text-cyber-cyan font-bold">2/2</span>
+                            </span>
+                            <button id="btn-reroll" type="button" onclick="rerollQuests(event)" class="cyber-clip px-4 py-2 bg-gradient-to-r from-cyber-cyan/20 to-cyber-purple/20 border border-cyber-cyan hover:border-white text-cyber-cyan hover:text-white font-mono text-xs transition duration-200 shadow-neon-cyan flex items-center gap-2">
+                                🔄 REROLL DIRECTIVES
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quests Container -->
+                    <div id="quests-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Quests injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACHIEVEMENTS & MEDALS (1 COL) -->
+            <div class="space-y-4">
+                <div class="cyber-card rounded-lg p-5 border-t-2 border-t-cyber-gold h-full flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-orbitron font-bold text-white flex items-center gap-2">
+                                🏆 ACHIEVEMENTS ENGINE
+                            </h2>
+                            <span id="achievement-ratio" class="text-xs font-mono text-cyber-gold">0 / 6</span>
+                        </div>
+
+                        <div id="achievements-container" class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+                            <!-- Achievements injected by JS -->
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-800 text-center flex flex-col gap-2">
+                        <span class="text-[11px] font-mono text-slate-500">COMPLETE ACHIEVEMENTS TO UNLOCK PROTOCOL BADGES</span>
+                        <button type="button" onclick="resetGameData(event)" class="text-[10px] font-mono text-red-400/70 hover:text-red-400 underline transition">
+                            ⚠️ RESET NEURAL DATA (CLEAR SAVE)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TERMINAL CONSOLE LOG -->
+        <div class="cyber-card rounded-lg p-4 border border-slate-800">
+            <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyber-emerald animate-ping"></span>
+                    <span class="font-mono text-xs text-cyber-emerald font-bold">SYSTEM TERMINAL // LIVE FEED</span>
+                </div>
+                <button onclick="clearTerminal()" class="text-[10px] font-mono text-slate-500 hover:text-slate-300">CLEAR LOGS</button>
+            </div>
+            <div id="terminal-log" class="h-28 overflow-y-auto font-mono text-xs space-y-1 text-slate-300 pr-2">
+                <!-- Terminal messages injected here -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PERFECT DAY CELEBRATION MODAL -->
+    <div id="modal-perfect-day" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="cyber-card max-w-md w-full p-6 rounded-xl border-2 border-cyber-gold shadow-neon-gold text-center space-y-5 animate-bounce-short">
+            <div class="w-16 h-16 mx-auto rounded-full bg-cyber-gold/20 border-2 border-cyber-gold flex items-center justify-center text-3xl">
+                🌟
+            </div>
+            <div>
+                <h3 class="font-orbitron text-2xl font-black text-cyber-gold tracking-wide">PERFECT DAY ACHIEVED!</h3>
+                <p class="text-xs font-mono text-slate-300 mt-1">100% Directives Completed for the Cycle</p>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded border border-cyber-gold/30 space-y-2 font-mono text-sm">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">BONUS XP:</span>
+                    <span class="text-cyber-gold font-bold">+250 XP</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">STREAK INCREMENT:</span>
+                    <span class="text-cyber-cyan font-bold">+1 DAY</span>
+                </div>
+            </div>
+            <button onclick="closePerfectDayModal()" class="w-full py-3 bg-cyber-gold text-black font-orbitron font-bold rounded cyber-clip hover:bg-yellow-400 transition shadow-neon-gold">
+                CLAIM PROTOCOL REWARDS
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME LOGIC -->
+    <script>
+        // Audio Engine using Web Audio API to prevent external asset dependency
+        let audioEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'complete') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    osc.frequency.setValueAtTime(783.99, now + 0.16);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'levelup') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(261.63, now);
+                    osc.frequency.exponentialRampToValueAtTime(873.07, now + 0.4);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'reroll') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.linearRampToValueAtTime(150, now + 0.15);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'perfect') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const subOsc = audioCtx.createOscillator();
+                        const subGain = audioCtx.createGain();
+                        subOsc.connect(subGain);
+                        subGain.connect(audioCtx.destination);
+                        subOsc.type = 'triangle';
+                        subOsc.frequency.setValueAtTime(freq, now + (idx * 0.1));
+                        subGain.gain.setValueAtTime(0.15, now + (idx * 0.1));
+                        subGain.gain.linearRampToValueAtTime(0, now + (idx * 0.1) + 0.3);
+                        subOsc.start(now + (idx * 0.1));
+                        subOsc.stop(now + (idx * 0.1) + 0.3);
+                    });
+                }
+            } catch (err) {
+                console.warn('Audio playback error:', err);
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audio-status').innerText = audioEnabled ? 'AUDIO ON' : 'AUDIO OFF';
+            document.getElementById('audio-icon').innerText = audioEnabled ? '🔊' : '🔇';
+            if (audioEnabled) playSound('click');
+        }
+
+        // GAME STATE DATA
+        const defaultState = {
+            level: 1,
+            xp: 0,
+            nextLevelXp: 500,
+            streak: 0,
+            rerolls: 2,
+            lastDate: new Date().toDateString(),
+            stats: {
+                strength: { name: 'Strength', icon: '💪', level: 0, color: 'text-red-400', key: 'strength' },
+                wisdom: { name: 'Wisdom', icon: '🧠', level: 0, color: 'text-blue-400', key: 'wisdom' },
+                focus: { name: 'Focus', icon: '🎯', level: 0, color: 'text-cyan-400', key: 'focus' },
+                discipline: { name: 'Discipline', icon: '🛡️', level: 0, color: 'text-amber-400', key: 'discipline' },
+                confidence: { name: 'Confidence', icon: '🔥', level: 0, color: 'text-orange-400', key: 'confidence' },
+                vitality: { name: 'Vitality', icon: '⚡', level: 0, color: 'text-emerald-400', key: 'vitality' },
+                creativity: { name: 'Creativity', icon: '🎨', level: 0, color: 'text-purple-400', key: 'creativity' }
+            },
+            perfectDayClaimed: false,
+            completedQuestsCount: 0,
+            vitalityQuestsCompleted: 0
+        };
+
+        let gameState = JSON.parse(JSON.stringify(defaultState));
+
+        // COMPREHENSIVE QUEST LIBRARY (20+ Quests)
+        const questLibrary = [
+            { id: 1, title: 'Iron Resistance', attribute: 'strength', xp: 80, desc: 'Complete 25 pushups or a 20-min calisthenics session.', tier: 1 },
+            { id: 2, title: 'Chronicles of the Ancients', attribute: 'wisdom', xp: 75, desc: 'Read 15 pages of philosophy or non-fiction history.', tier: 1 },
+            { id: 3, title: 'Offline Sanctuary', attribute: 'discipline', xp: 90, desc: 'Keep total screen time under 4 hours today.', tier: 1 },
+            { id: 4, title: 'Core Hydration Protocol', attribute: 'vitality', xp: 70, desc: 'Drink at least 2.5L of clean water throughout the day.', tier: 1 },
+            { id: 5, title: 'Frequency & Frame', attribute: 'creativity', xp: 75, desc: 'Practice an instrument or create visual art for 20 minutes.', tier: 1 },
+            { id: 6, title: 'Direct Resonance', attribute: 'confidence', xp: 85, desc: 'Start a conversation with someone new or do a public act of kindness.', tier: 1 },
+            { id: 7, title: 'Deep Focus Sprint', attribute: 'focus', xp: 100, desc: 'Execute a 50-minute uninterrupted Pomodoro work session.', tier: 1 },
+            { id: 8, title: 'Legion Stride', attribute: 'strength', xp: 85, desc: 'Log 8,000 steps or a 30-minute cardio run.', tier: 1 },
+            { id: 9, title: 'Mindful Silence', attribute: 'wisdom', xp: 70, desc: 'Complete 10 minutes of silent meditation or journaling.', tier: 1 },
+            { id: 10, title: 'Digital Fortress', attribute: 'discipline', xp: 95, desc: 'Leave your phone out of the bedroom overnight.', tier: 1 },
+            { id: 11, title: 'Clean Fuel Injection', attribute: 'vitality', xp: 80, desc: 'Eat 3 clean meals without refined sugar or processed junk.', tier: 1 },
+            { id: 12, title: 'Vocal Command', attribute: 'confidence', xp: 90, desc: 'Speak up clearly in a group meeting or present an idea.', tier: 1 },
+            { id: 13, title: 'Sonic Synthesis', attribute: 'creativity', xp: 80, desc: 'Write a poem, edit a video, or design a new layout.', tier: 1 },
+            { id: 14, title: 'Zero Distraction Lockout', attribute: 'focus', xp: 110, desc: 'Work for 2 hours with all notifications silenced.', tier: 1 },
+            { id: 15, title: 'Core Fortress', attribute: 'strength', xp: 90, desc: 'Hold a 3-minute total plank position across the day.', tier: 1 },
+            { id: 16, title: 'Stoic Reflection', attribute: 'wisdom', xp: 85, desc: 'Write down 3 gratitude entries & an evening review.', tier: 1 },
+            { id: 17, title: 'Sleep Cycle Alignment', attribute: 'vitality', xp: 100, desc: 'Secure 7 hours and 45 minutes of rest tonight.', tier: 1 },
+            { id: 18, title: 'Micro-Altruism Protocol', attribute: 'confidence', xp: 75, desc: 'Offer a genuine compliment to 2 different people.', tier: 1 }
+        ];
+
+        // ACHIEVEMENTS ENGINE DATA
+        const defaultAchievements = [
+            { id: 'first_blood', name: 'First Directive', desc: 'Complete your first real-world quest', icon: '⚔️', unlocked: false },
+            { id: 'cyber_initiate', name: 'Cyber Initiate', desc: 'Reach Level 2 Operative status', icon: '⚡', unlocked: false },
+            { id: 'perfectionist', name: 'Overclocked Day', desc: 'Achieve a Perfect Day Bonus', icon: '🌟', unlocked: false },
+            { id: 'hydration_king', name: 'Hydro Master', desc: 'Complete Vitality directives 3 times', icon: '💧', unlocked: false },
+            { id: 'streak_3', name: 'Consistency Grid', desc: 'Reach a 3-Day active Streak', icon: '🔥', unlocked: false },
+            { id: 'stat_max', name: 'Neural Adept', desc: 'Reach level 3 in any single attribute', icon: '🧠', unlocked: false }
+        ];
+
+        let achievements = JSON.parse(JSON.stringify(defaultAchievements));
+        let currentQuests = [];
+
+        // PERSISTENCE STORAGE CONTROLLER
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('lifequest_state', JSON.stringify(gameState));
+                localStorage.setItem('lifequest_quests', JSON.stringify(currentQuests));
+                localStorage.setItem('lifequest_achievements', JSON.stringify(achievements));
+            } catch (err) {
+                console.error('Failed to save state to localStorage:', err);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const savedState = localStorage.getItem('lifequest_state');
+                const savedQuests = localStorage.getItem('lifequest_quests');
+                const savedAch = localStorage.getItem('lifequest_achievements');
+
+                if (savedState) {
+                    gameState = { ...defaultState, ...JSON.parse(savedState) };
+                }
+                if (savedQuests) {
+                    currentQuests = JSON.parse(savedQuests);
+                } else {
+                    currentQuests = getRandomQuests();
+                }
+                if (savedAch) {
+                    achievements = JSON.parse(savedAch);
+                }
+
+                // Check for daily rollover
+                const today = new Date().toDateString();
+                if (gameState.lastDate !== today) {
+                    gameState.lastDate = today;
+                    gameState.rerolls = 2;
+                    gameState.perfectDayClaimed = false;
+                    currentQuests = getRandomQuests();
+                    logTerminal('[SYSTEM RESET]: New cycle detected. Daily directives & rerolls refreshed.');
+                }
+            } catch (err) {
+                console.error('Failed to load state from localStorage:', err);
+                currentQuests = getRandomQuests();
+            }
+        }
+
+        function getRandomQuests() {
+            const shuffled = [...questLibrary].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, 6).map(q => ({ ...q, completed: false }));
+        }
+
+        function resetGameData(e) {
+            if (e) e.preventDefault();
+            if (confirm('⚠️ WARNING: Are you sure you want to reset all profile data, level, stats, and active quests?')) {
+                localStorage.clear();
+                gameState = JSON.parse(JSON.stringify(defaultState));
+                achievements = JSON.parse(JSON.stringify(defaultAchievements));
+                currentQuests = getRandomQuests();
+                saveToLocalStorage();
+                renderStats();
+                renderQuests();
+                renderAchievements();
+                updateUI();
+                logTerminal('[DATA WIPE]: Neural link reset to factory defaults.');
+                playSound('reroll');
+            }
+        }
+
+        // INITIALIZATION
+        window.onload = function() {
+            try {
+                loadFromLocalStorage();
+                logTerminal('[SYSTEM INIT]: LifeQuest Cyber Engine initialized...');
+                logTerminal('[STATUS]: Neural save data synchronized.');
+                renderStats();
+                renderQuests();
+                renderAchievements();
+                updateUI();
+            } catch (err) {
+                console.error('Error during init:', err);
+            }
+        };
+
+        // RENDER FUNCTIONS
+        function renderStats() {
+            const container = document.getElementById('stats-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let totalPoints = 0;
+            Object.values(gameState.stats).forEach(stat => {
+                totalPoints += stat.level;
+                const card = document.createElement('div');
+                card.className = 'bg-slate-900/80 border border-slate-800 p-3 rounded-md flex flex-col justify-between hover:border-cyber-cyan/50 transition';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-lg">${stat.icon}</span>
+                        <span class="text-xs font-mono text-slate-400 font-bold">LVL <span class="text-white text-sm">${stat.level}</span></span>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold ${stat.color} font-mono tracking-wider">${stat.name.toUpperCase()}</div>
+                        <div class="w-full bg-slate-950 h-1.5 rounded-full mt-1.5 overflow-hidden border border-slate-800">
+                            <div class="bg-cyber-cyan h-full transition-all duration-300" style="width: ${Math.min(stat.level * 20, 100)}%"></div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            document.getElementById('total-stat-points').innerText = totalPoints;
+        }
+
+        function renderQuests() {
+            const container = document.getElementById('quests-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            currentQuests.forEach((quest, index) => {
+                const statInfo = gameState.stats[quest.attribute] || { icon: '🎯', color: 'text-cyber-cyan' };
+                const isCompleted = quest.completed;
+
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-lg border transition-all duration-300 flex flex-col justify-between relative overflow-hidden ${
+                    isCompleted 
+                    ? 'bg-slate-950/60 border-cyber-emerald/40 opacity-75' 
+                    : 'bg-slate-900/90 border-slate-800 hover:border-cyber-cyan/60'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 text-xs rounded font-mono ${statInfo.color}">
+                                ${statInfo.icon} ${quest.attribute.toUpperCase()}
+                            </span>
+                        </div>
+                        <span class="text-xs font-mono font-bold text-cyber-gold bg-cyber-gold/10 px-2 py-0.5 rounded border border-cyber-gold/30">
+                            +${quest.xp} XP
+                        </span>
+                    </div>
+
+                    <h3 class="font-orbitron text-sm font-bold text-white mb-1 ${isCompleted ? 'line-through text-slate-400' : ''}">
+                        ${quest.title}
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4 line-clamp-2 font-sans">${quest.desc}</p>
+
+                    <button type="button" onclick="toggleQuest(event, ${index})" 
+                        class="w-full py-2 px-3 rounded font-mono text-xs font-bold transition flex items-center justify-center gap-2 ${
+                            isCompleted 
+                            ? 'bg-cyber-emerald/20 border border-cyber-emerald text-cyber-emerald cursor-default' 
+                            : 'bg-cyber-cyan/10 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black shadow-neon-cyan'
+                        }">
+                        ${isCompleted ? '✓ DIRECTIVE COMPLETED' : 'EXECUTE DIRECTIVE'}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderAchievements() {
+            const container = document.getElementById('achievements-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let unlockedCount = 0;
+            achievements.forEach(ach => {
+                if (ach.unlocked) unlockedCount++;
+
+                const item = document.createElement('div');
+                item.className = `p-2.5 rounded border flex items-center space-x-3 font-mono transition ${
+                    ach.unlocked 
+                    ? 'bg-slate-900 border-cyber-gold/50 text-white' 
+                    : 'bg-slate-950/40 border-slate-800/80 text-slate-600 opacity-60'
+                }`;
+                item.innerHTML = `
+                    <div class="w-8 h-8 rounded flex items-center justify-center text-lg ${ach.unlocked ? 'bg-cyber-gold/20 text-cyber-gold border border-cyber-gold/40' : 'bg-slate-900 border border-slate-800'}">
+                        ${ach.icon}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs font-bold truncate ${ach.unlocked ? 'text-cyber-gold' : 'text-slate-500'}">${ach.name}</div>
+                        <div class="text-[10px] truncate text-slate-400">${ach.desc}</div>
+                    </div>
+                    ${ach.unlocked ? '<span class="text-xs text-cyber-gold font-bold">✓</span>' : ''}
+                `;
+                container.appendChild(item);
+            });
+
+            document.getElementById('achievement-ratio').innerText = `${unlockedCount} / ${achievements.length}`;
+        }
+
+        // GAMEPLAY MECHANICS
+        function toggleQuest(e, index) {
+            if (e) e.preventDefault();
+            try {
+                const quest = currentQuests[index];
+                if (quest.completed) return;
+
+                quest.completed = true;
+                gameState.completedQuestsCount = (gameState.completedQuestsCount || 0) + 1;
+                playSound('complete');
+
+                // Grant XP
+                addXP(quest.xp);
+
+                // Upgrade Stat
+                if (gameState.stats[quest.attribute]) {
+                    gameState.stats[quest.attribute].level += 1;
+                    logTerminal(`[STAT INCREASE]: ${gameState.stats[quest.attribute].name} upgraded to Level ${gameState.stats[quest.attribute].level}!`);
+                }
+
+                if (quest.attribute === 'vitality') {
+                    gameState.vitalityQuestsCompleted = (gameState.vitalityQuestsCompleted || 0) + 1;
+                }
+
+                logTerminal(`[DIRECTIVE COMPLETE]: '${quest.title}' (+${quest.xp} XP)`);
+
+                // Check Perfect Day Condition
+                const allCompleted = currentQuests.every(q => q.completed);
+                if (allCompleted && !gameState.perfectDayClaimed) {
+                    triggerPerfectDay();
+                }
+
+                checkAchievements();
+                saveToLocalStorage();
+                renderStats();
+                renderQuests();
+                updateUI();
+            } catch (err) {
+                console.error('Error toggling quest:', err);
+            }
+        }
+
+        function addXP(amount) {
+            gameState.xp += amount;
+            while (gameState.xp >= gameState.nextLevelXp) {
+                gameState.xp -= gameState.nextLevelXp;
+                gameState.level += 1;
+                gameState.nextLevelXp = Math.floor(gameState.nextLevelXp * 1.35);
+                playSound('levelup');
+                logTerminal(`[LEVEL UP!]: Operative promoted to Level ${gameState.level}!`);
+            }
+        }
+
+        function triggerPerfectDay() {
+            gameState.perfectDayClaimed = true;
+            addXP(250);
+            gameState.streak += 1;
+            playSound('perfect');
+            logTerminal(`[PERFECT DAY!]: All daily directives completed! +250 XP Bonus & +1 Streak Day!`);
+            document.getElementById('modal-perfect-day').classList.remove('hidden');
+        }
+
+        function closePerfectDayModal(e) {
+            if (e) e.preventDefault();
+            playSound('click');
+            document.getElementById('modal-perfect-day').classList.add('hidden');
+            saveToLocalStorage();
+            renderStats();
+            updateUI();
+        }
+
+        function rerollQuests(e) {
+            if (e) e.preventDefault();
+            try {
+                if (gameState.rerolls <= 0) {
+                    logTerminal(`[WARNING]: Reroll limit reached for current daily cycle!`);
+                    playSound('click');
+                    return;
+                }
+
+                gameState.rerolls -= 1;
+                playSound('reroll');
+
+                currentQuests = getRandomQuests();
+                logTerminal(`[REROLL EXECUTED]: Quests randomized. (${gameState.rerolls} rerolls left)`);
+
+                saveToLocalStorage();
+                renderQuests();
+                updateUI();
+            } catch (err) {
+                console.error('Error executing reroll:', err);
+            }
+        }
+
+        function checkAchievements() {
+            if (gameState.completedQuestsCount >= 1) unlockAchievement('first_blood');
+            if (gameState.level >= 2) unlockAchievement('cyber_initiate');
+            if (gameState.perfectDayClaimed) unlockAchievement('perfectionist');
+            if (gameState.vitalityQuestsCompleted >= 3) unlockAchievement('hydration_king');
+            if (gameState.streak >= 3) unlockAchievement('streak_3');
+            
+            const maxStat = Math.max(...Object.values(gameState.stats).map(s => s.level));
+            if (maxStat >= 3) unlockAchievement('stat_max');
+        }
+
+        function unlockAchievement(id) {
+            const ach = achievements.find(a => a.id === id);
+            if (ach && !ach.unlocked) {
+                ach.unlocked = true;
+                logTerminal(`[ACHIEVEMENT UNLOCKED]: '${ach.name}' - Badge added to profile!`);
+                renderAchievements();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('player-level').innerText = gameState.level;
+            document.getElementById('player-xp').innerText = gameState.xp;
+            document.getElementById('player-next-xp').innerText = gameState.nextLevelXp;
+            document.getElementById('stat-streak').innerText = gameState.streak;
+            document.getElementById('rerolls-left').innerText = `${gameState.rerolls}/2`;
+
+            const btnReroll = document.getElementById('btn-reroll');
+            if (btnReroll) {
+                if (gameState.rerolls <= 0) {
+                    btnReroll.classList.add('opacity-50', 'cursor-not-allowed');
+                    btnReroll.classList.remove('hover:border-white');
+                } else {
+                    btnReroll.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            const pct = Math.min((gameState.xp / gameState.nextLevelXp) * 100, 100);
+            document.getElementById('xp-bar').style.width = `${pct}%`;
+
+            const statusElem = document.getElementById('perfect-day-status');
+            if (statusElem) {
+                if (gameState.perfectDayClaimed) {
+                    statusElem.innerText = 'CLAIMED (+250 XP)';
+                    statusElem.className = 'text-cyber-emerald font-bold';
+                } else {
+                    statusElem.innerText = '+250 XP READY';
+                    statusElem.className = 'text-cyber-gold font-bold';
+                }
+            }
+        }
+
+        // TERMINAL CONSOLE LOGGING
+        function logTerminal(message) {
+            const logContainer = document.getElementById('terminal-log');
+            if (!logContainer) return;
+            const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const line = document.createElement('div');
+            line.className = 'flex space-x-2';
+            line.innerHTML = `<span class="text-slate-500">[${time}]</span> <span class="text-cyber-cyan">${message}</span>`;
+            
+            logContainer.appendChild(line);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearTerminal(e) {
+            if (e) e.preventDefault();
+            document.getElementById('terminal-log').innerHTML = '';
+            logTerminal('[SYSTEM]: Console logs cleared.');
+        }
+    </script>
+</body>
+</html>
